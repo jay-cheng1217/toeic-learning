@@ -14,7 +14,7 @@ export const ICONS = {
 
 export const state = {
     apiKey: '',
-    targetScore: 700,
+    targetScore: 600,
     selectedVoice: 'random',
     practiceMode: 'article',
     lastUsedVoice: null,
@@ -43,7 +43,7 @@ export const state = {
         isResponding: false
     },
     examState: {
-        score: 700,
+        score: 600,
         questions: [],
         answers: {},
         result: null,

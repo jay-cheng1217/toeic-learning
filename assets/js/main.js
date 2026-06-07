@@ -20,6 +20,7 @@ import { createId } from './id.js';
 import { safeLocalGet, safeLocalRemove, safeLocalSet } from './storageSafe.js';
 import { SPEAKING_LEVELS, getSpeakingLevelByScore } from './speakingLevel.js';
 import { fetchVersionInfo, getBootVersionInfo } from './versioning.js';
+import { initStudyPlan, renderStudyPlan } from './studyPlan.js';
 import {
     resetSpeakingPracticeView as viewResetSpeakingPractice,
     showSpeakingConfigView as viewShowSpeakingConfig,
@@ -52,7 +53,7 @@ const emptyStateEl = document.getElementById('emptyState');
 const learningAreaEl = document.getElementById('learningArea');
 const speakingSessionViewEl = document.getElementById('speakingSessionView');
 const examShellEl = document.getElementById('examShell');
-let activeTab = 'learn';
+let activeTab = 'plan';
 let currentLearnRecord = null;
 
 function markLearnRecord(record) {
@@ -106,9 +107,10 @@ function setLearnRuntimeMode(mode) {
 /* ── Tab switching ── */
 function switchTab(tabName) {
     activeTab = tabName;
-    ['tabLearn', 'tabPractice', 'tabVocab', 'tabHistory', 'tabAbout'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    ['tabPlan', 'tabLearn', 'tabPractice', 'tabVocab', 'tabHistory', 'tabAbout'].forEach(id => document.getElementById(id).classList.add('hidden'));
     document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.remove('hidden');
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
+    if (tabName === 'plan') renderStudyPlan();
     if (tabName === 'practice' && state.practiceMode === 'speaking') viewResetSpeakingPractice();
     if (tabName === 'practice' && state.practiceMode === 'exam') viewResetExamPractice();
     if (tabName === 'history') renderHistory();
@@ -160,6 +162,26 @@ document.querySelectorAll('#speakingLevelSwitch .speaking-level-chip').forEach((
 
 /* ── Score chips (article + exam shared) ── */
 const scores = [500, 600, 700, 800, 900];
+
+function setTargetScore(score) {
+    const nextScore = Number(score);
+    if (!Number.isFinite(nextScore)) return;
+    state.targetScore = nextScore;
+    state.examState.score = nextScore;
+    document.querySelectorAll('#scoreSelector .score-chip, #examScoreSelector .score-chip').forEach(c => {
+        c.classList.toggle('active', Number(c.innerText) === nextScore);
+    });
+    if (!state.speakingState.levelManuallySelected) {
+        state.speakingState.level = getSpeakingLevelByScore(nextScore);
+        renderSpeakingLevelSwitch();
+    }
+}
+
+function setArticleTopic(topic) {
+    const input = document.getElementById('customTopic');
+    if (input) input.value = topic || '';
+}
+
 function renderScoreChips(containerId) {
     const el = document.getElementById(containerId);
     if (!el) return;
@@ -168,17 +190,7 @@ function renderScoreChips(containerId) {
         const chip = document.createElement('div');
         chip.className = `score-chip ${score === state.targetScore ? 'active' : ''}`;
         chip.innerText = score;
-        chip.onclick = () => {
-            state.targetScore = score;
-            state.examState.score = score;
-            document.querySelectorAll('#scoreSelector .score-chip, #examScoreSelector .score-chip').forEach(c => {
-                c.classList.toggle('active', Number(c.innerText) === score);
-            });
-            if (!state.speakingState.levelManuallySelected) {
-                state.speakingState.level = getSpeakingLevelByScore(score);
-                renderSpeakingLevelSwitch();
-            }
-        };
+        chip.onclick = () => setTargetScore(score);
         el.appendChild(chip);
     });
 }
@@ -256,6 +268,7 @@ function populateLocaleSelector() {
 function applyLocaleToUI() {
     applyTranslations(document);
     document.title = t('appTitle');
+    renderStudyPlan();
     setAnnouncementContent();
     renderVoiceOptions();
     syncSpeakingAccentSelector();
@@ -1010,13 +1023,14 @@ GENERATE_BTN.onclick = async () => {
             const lk = safeLocalGet('gemini_api_key');
             if (lk) { apiKey = lk; await DB.setSetting('gemini_api_key', lk); safeLocalRemove('gemini_api_key'); }
         }
-        if (apiKey) state.apiKey = apiKey; else keyModal.classList.add('active');
+        if (apiKey) state.apiKey = apiKey;
         renderHistory();
         await loadLastSession();
+        await initStudyPlan({ switchTab, setPracticeMode, setTargetScore, setArticleTopic });
         setPracticeMode('article');
         setLearnRuntimeMode('article');
-        viewShowSpeakingConfig(setLearnRuntimeMode, switchTab);
-        viewShowExamConfig(setLearnRuntimeMode, switchTab);
+        viewResetSpeakingPractice();
+        viewResetExamPractice();
 
         DriveSync.init();
         const cloudEnabled = await DB.getSetting('cloud_sync_enabled');

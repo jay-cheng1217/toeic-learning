@@ -6,6 +6,7 @@ import { safeLocalGet, safeLocalSet } from './storageSafe.js';
 const DISMISS_KEY = 'pwa_install_dismissed';
 const DISMISS_PERMANENT_KEY = 'pwa_install_never';
 const COOLDOWN_DAYS = 7;
+const AUTO_PROMPT_DELAY_MS = 60000;
 
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -166,9 +167,11 @@ export function initInstallPrompt() {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPromptEvent = e;
-    if (!isStandalone() && !isDismissed()) {
-      showAndroidOverlay(deferredPromptEvent);
-    }
+    setTimeout(() => {
+      if (!isStandalone() && !isDismissed()) {
+        showAndroidOverlay(deferredPromptEvent);
+      }
+    }, AUTO_PROMPT_DELAY_MS);
   });
 
   // For browsers that don't fire beforeinstallprompt (non-Chromium desktop, etc.)
@@ -177,6 +180,6 @@ export function initInstallPrompt() {
       if (!deferredPromptEvent && !document.getElementById('installOverlay')) {
         showGenericOverlay();
       }
-    }, 3000);
+    }, AUTO_PROMPT_DELAY_MS);
   }
 }
