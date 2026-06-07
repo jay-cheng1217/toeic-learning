@@ -1,5 +1,5 @@
 {
-  "version": "1.12.0",
+  "version": "1.12.1",
   "date": "2026-06-07",
   "changes": [
     "新增 TOEIC 300 -> 600 三個月通勤學習計畫",
@@ -19,6 +19,7 @@
     "新增每題中文解析與錯誤選項說明",
     "修正閱讀題句框，讓題目與解析更自然",
     "練習頁新增免 API 訓練入口，清楚區分內建題庫與 AI 功能",
-    "修正關於頁 GitHub 連結為 jay-cheng1217/toeic-learning"
+    "修正關於頁 GitHub 連結為 jay-cheng1217/toeic-learning",
+    "修正 service worker 對 JS/CSS 的版本快取策略，避免更新後混用舊檔"
   ]
 }

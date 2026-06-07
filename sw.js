@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'toeic-tutor-static';
-const CACHE_NAME = `${CACHE_PREFIX}-v22`;
+const CACHE_NAME = `${CACHE_PREFIX}-v23`;
 
 const STATIC_ASSETS = [
   './manifest.json',
@@ -187,7 +187,7 @@ self.addEventListener('fetch', (event) => {
   if (isScriptOrStyleRequest(event.request)) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
-        const cached = await cache.match(event.request, { ignoreSearch: true });
+        const cached = await cache.match(event.request);
         const networkFetch = fetch(event.request)
           .then((response) => putIfOk(cache, event.request, response))
           .catch(() => null);
@@ -200,7 +200,7 @@ self.addEventListener('fetch', (event) => {
 
         const networkResp = await networkFetch;
         if (networkResp) return networkResp;
-        return cache.match(event.request, { ignoreSearch: true });
+        return cache.match(event.request) || cache.match(event.request, { ignoreSearch: true });
       })
     );
     return;
