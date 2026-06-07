@@ -2,9 +2,9 @@
 
 import { DB } from './db.js';
 import { ICONS } from './state.js';
-import { t } from './i18n.js?v=1.14.5';
-import { getListeningLessonForDay } from './listeningPack.js?v=1.14.5';
-import { getReadingLessonForDay } from './readingPack.js?v=1.14.5';
+import { t } from './i18n.js?v=1.14.7';
+import { getListeningLessonForDay } from './listeningPack.js?v=1.14.7';
+import { getReadingLessonForDay } from './readingPack.js?v=1.14.7';
 
 const DAY_MS = 86400000;
 const PLAN_DAYS = 84;

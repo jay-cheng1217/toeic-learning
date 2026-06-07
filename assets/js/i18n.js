@@ -12,9 +12,9 @@ const LOCALE_META = {
     ja: { name: 'Japanese', inLocal: '日本語' }
 };
 
-import ZH_TW from './i18n/locales/zh-TW.js?v=1.14.5';
-import KO from './i18n/locales/ko.js?v=1.14.5';
-import JA from './i18n/locales/ja.js?v=1.14.5';
+import ZH_TW from './i18n/locales/zh-TW.js?v=1.14.7';
+import KO from './i18n/locales/ko.js?v=1.14.7';
+import JA from './i18n/locales/ja.js?v=1.14.7';
 
 function withZhTwDefaults(localePack) {
     return { ...ZH_TW, ...localePack };

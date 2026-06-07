@@ -4,35 +4,199 @@
 const TOTAL_TRAINING_DAYS = 84;
 const PART_SEQUENCE = ['Part 2', 'Part 1', 'Part 2', 'Part 3', 'Part 2', 'Part 4', 'Part 3'];
 
-const TOPICS = [
-    { title: 'Office Supplies', focus: 'copy paper', location: 'storage room', person: 'office manager', reason: 'the afternoon meeting', action: 'order more supplies', zh: '辦公室用品', keywords: ['copy paper', 'storage room', 'supplier'] },
-    { title: 'Travel Schedule', focus: 'flight itinerary', location: 'airport', person: 'travel coordinator', reason: 'the sales conference', action: 'confirm the taxi pickup', zh: '商務出差時程', keywords: ['flight', 'taxi', 'airport'] },
-    { title: 'Customer Return', focus: 'wrong model', location: 'front desk', person: 'service representative', reason: 'a replacement request', action: 'schedule a pickup', zh: '客戶退換貨', keywords: ['wrong model', 'replacement', 'pickup'] },
-    { title: 'Inventory Check', focus: 'new keyboards', location: 'warehouse', person: 'design team', reason: 'Friday setup work', action: 'contact the supplier', zh: '庫存確認', keywords: ['inventory', 'warehouse', 'supplier'] },
-    { title: 'Training Room', focus: 'projector setup', location: 'large conference room', person: 'facilities coordinator', reason: 'staff training', action: 'prepare twenty chairs', zh: '訓練教室安排', keywords: ['projector', 'conference room', 'facilities'] },
-    { title: 'Store Notice', focus: 'electronics counter', location: 'second floor', person: 'customer service counter', reason: 'a private company event', action: 'assist shoppers downstairs', zh: '商店公告', keywords: ['electronics', 'second floor', 'customer service'] },
-    { title: 'Delivery Delay', focus: 'customer packages', location: 'distribution center', person: 'tracking team', reason: 'heavy rain', action: 'update the delivery time', zh: '配送延誤', keywords: ['delivery', 'rain', 'tracking'] },
-    { title: 'Invoice Approval', focus: 'unpaid invoice', location: 'finance portal', person: 'finance manager', reason: 'manager approval', action: 'process the payment', zh: '發票付款', keywords: ['invoice', 'approval', 'payment'] },
-    { title: 'Hotel Survey', focus: 'check-in service', location: 'front desk', person: 'hotel manager', reason: 'customer survey results', action: 'add evening staff', zh: '旅館問卷回饋', keywords: ['survey', 'check-in', 'front desk'] },
-    { title: 'System Maintenance', focus: 'online ordering system', location: 'company website', person: 'support desk', reason: 'scheduled maintenance', action: 'take urgent orders by phone', zh: '系統維護', keywords: ['system', 'maintenance', 'urgent orders'] },
-    { title: 'Client Presentation', focus: 'revised slides', location: 'small conference room', person: 'sales manager', reason: 'a schedule change', action: 'update the calendar invitation', zh: '客戶簡報', keywords: ['presentation', 'slides', 'calendar'] },
-    { title: 'Test Day Documents', focus: 'admission ticket', location: 'testing room', person: 'test coordinator', reason: 'tomorrow s certification test', action: 'check photo identification', zh: '考試文件', keywords: ['ticket', 'identification', 'testing room'] },
-    { title: 'Cafeteria Schedule', focus: 'lunch vouchers', location: 'cafeteria', person: 'HR assistant', reason: 'new employee orientation', action: 'hand out vouchers', zh: '員工餐廳安排', keywords: ['cafeteria', 'voucher', 'orientation'] },
-    { title: 'Product Demo', focus: 'sample unit', location: 'showroom', person: 'marketing team', reason: 'a product demonstration', action: 'set up the display table', zh: '產品展示', keywords: ['sample', 'showroom', 'display'] },
-    { title: 'Repair Request', focus: 'office copier', location: 'copy room', person: 'maintenance desk', reason: 'paper jams', action: 'send a technician', zh: '設備維修', keywords: ['copier', 'repair', 'technician'] },
-    { title: 'Reservation Change', focus: 'hotel booking', location: 'reception desk', person: 'travel agent', reason: 'a late arrival', action: 'change the check-in time', zh: '訂房變更', keywords: ['reservation', 'check-in', 'travel agent'] },
-    { title: 'Marketing Email', focus: 'newsletter draft', location: 'shared drive', person: 'marketing director', reason: 'Monday campaign launch', action: 'review the subject line', zh: '行銷電子報', keywords: ['newsletter', 'draft', 'campaign'] },
-    { title: 'Budget Report', focus: 'expense report', location: 'finance folder', person: 'accounting team', reason: 'quarterly review', action: 'attach missing receipts', zh: '預算報告', keywords: ['expense', 'receipt', 'quarterly'] },
-    { title: 'Job Interview', focus: 'candidate resume', location: 'interview room', person: 'recruiter', reason: 'a morning interview', action: 'print the interview schedule', zh: '求職面試', keywords: ['resume', 'interview', 'recruiter'] },
-    { title: 'Conference Badge', focus: 'visitor badges', location: 'main lobby', person: 'reception team', reason: 'guest registration', action: 'prepare name tags', zh: '會議識別證', keywords: ['badge', 'lobby', 'registration'] },
-    { title: 'Parking Permit', focus: 'parking permit', location: 'security office', person: 'building manager', reason: 'temporary visitor parking', action: 'send the permit number', zh: '停車證', keywords: ['parking', 'permit', 'security'] },
-    { title: 'Software Update', focus: 'login password', location: 'IT help desk', person: 'system administrator', reason: 'a security update', action: 'reset the password', zh: '軟體更新', keywords: ['login', 'password', 'security'] },
-    { title: 'Shipping Label', focus: 'shipping labels', location: 'mail room', person: 'logistics clerk', reason: 'international shipments', action: 'print new labels', zh: '貨運標籤', keywords: ['shipping', 'label', 'mail room'] },
-    { title: 'Supplier Meeting', focus: 'contract file', location: 'conference room B', person: 'purchasing manager', reason: 'supplier negotiations', action: 'bring the latest price list', zh: '供應商會議', keywords: ['contract', 'supplier', 'price list'] },
-    { title: 'Customer Survey', focus: 'feedback forms', location: 'front desk', person: 'operations team', reason: 'service improvement', action: 'collect completed forms', zh: '顧客問卷', keywords: ['feedback', 'forms', 'operations'] },
-    { title: 'Safety Training', focus: 'safety handbook', location: 'training room', person: 'safety officer', reason: 'annual safety training', action: 'review emergency exits', zh: '安全訓練', keywords: ['safety', 'handbook', 'emergency'] },
-    { title: 'Cafe Order', focus: 'coffee order', location: 'break room', person: 'office assistant', reason: 'a client visit', action: 'confirm drink preferences', zh: '咖啡訂單', keywords: ['coffee', 'client visit', 'break room'] },
-    { title: 'Sales Forecast', focus: 'sales spreadsheet', location: 'shared folder', person: 'sales director', reason: 'the monthly forecast meeting', action: 'update the revenue numbers', zh: '銷售預測', keywords: ['forecast', 'spreadsheet', 'revenue'] }
+const CONTEXTS = [
+    {
+        title: 'Office Supply Request',
+        zh: '辦公室用品',
+        item: 'copy paper order',
+        object: 'copy paper',
+        location: 'storage room',
+        placePhrase: 'in the storage room',
+        role: 'office manager',
+        contact: 'the office services team',
+        deadline: 'Friday afternoon',
+        reason: 'extra copy paper is needed for next week\'s staff meeting',
+        problem: 'the storage room is almost out of copy paper',
+        request: 'check the supply request',
+        action: 'place the paper order',
+        keywords: ['copy paper', 'storage room', 'office manager']
+    },
+    {
+        title: 'Travel Itinerary',
+        zh: '商務出差',
+        item: 'travel itinerary',
+        object: 'flight details',
+        location: 'travel desk',
+        placePhrase: 'at the travel desk',
+        role: 'travel coordinator',
+        contact: 'the travel desk',
+        deadline: 'Wednesday noon',
+        reason: 'several employees will attend a sales conference',
+        problem: 'one flight time was changed this morning',
+        request: 'review the updated flight details',
+        action: 'confirm the hotel reservation',
+        keywords: ['travel', 'flight', 'hotel']
+    },
+    {
+        title: 'Delivery Schedule',
+        zh: '配送通知',
+        item: 'delivery schedule',
+        object: 'customer shipments',
+        location: 'distribution center',
+        placePhrase: 'at the distribution center',
+        role: 'logistics supervisor',
+        contact: 'the delivery team',
+        deadline: 'this afternoon',
+        reason: 'heavy rain delayed several customer shipments',
+        problem: 'several packages will arrive later than planned',
+        request: 'check the revised delivery times',
+        action: 'notify customers of the delay',
+        keywords: ['delivery', 'delay', 'customers']
+    },
+    {
+        title: 'Invoice Approval',
+        zh: '發票付款',
+        item: 'invoice approval',
+        object: 'invoice amount',
+        location: 'finance portal',
+        placePhrase: 'on the finance portal',
+        role: 'accounting assistant',
+        contact: 'the finance department',
+        deadline: 'the end of the day',
+        reason: 'manager approval is required before payment',
+        problem: 'the invoice is waiting for final approval',
+        request: 'confirm the invoice amount',
+        action: 'process the approved payment',
+        keywords: ['invoice', 'approval', 'payment']
+    },
+    {
+        title: 'Training Room',
+        zh: '訓練安排',
+        item: 'training schedule',
+        object: 'attendee list',
+        location: 'training room',
+        placePhrase: 'in the training room',
+        role: 'facilities coordinator',
+        contact: 'the training office',
+        deadline: 'Thursday morning',
+        reason: 'more employees registered than expected',
+        problem: 'the current room is too small for the group',
+        request: 'check the attendee list',
+        action: 'reserve a larger room',
+        keywords: ['training', 'attendees', 'room']
+    },
+    {
+        title: 'Copier Repair',
+        zh: '設備維修',
+        item: 'copier repair request',
+        object: 'office copier',
+        location: 'copy room',
+        placePhrase: 'in the copy room',
+        role: 'maintenance technician',
+        contact: 'the service desk',
+        deadline: 'tomorrow morning',
+        reason: 'the copier has had repeated paper jams',
+        problem: 'the copier stopped twice during printing',
+        request: 'review the repair request',
+        action: 'schedule a technician visit',
+        keywords: ['copier', 'repair', 'technician']
+    },
+    {
+        title: 'Newsletter Draft',
+        zh: '行銷信件',
+        item: 'newsletter draft',
+        object: 'subject line',
+        location: 'shared drive',
+        placePhrase: 'on the shared drive',
+        role: 'marketing director',
+        contact: 'the marketing team',
+        deadline: 'Friday morning',
+        reason: 'the campaign will be launched on Monday',
+        problem: 'the subject line still needs final approval',
+        request: 'read the revised newsletter draft',
+        action: 'approve the subject line',
+        keywords: ['newsletter', 'campaign', 'subject line']
+    },
+    {
+        title: 'Group Reservation',
+        zh: '訂房變更',
+        item: 'group reservation',
+        object: 'guest list',
+        location: 'front desk',
+        placePhrase: 'at the front desk',
+        role: 'front desk manager',
+        contact: 'the reservations team',
+        deadline: '6 p.m. today',
+        reason: 'several guests will arrive later than planned',
+        problem: 'the check-in time needs to be changed',
+        request: 'confirm the guest list',
+        action: 'change the check-in time',
+        keywords: ['reservation', 'guests', 'check-in']
+    },
+    {
+        title: 'Password Reset',
+        zh: '系統維護',
+        item: 'account request',
+        object: 'employee account',
+        location: 'IT help desk',
+        placePhrase: 'at the IT help desk',
+        role: 'system administrator',
+        contact: 'the IT help desk',
+        deadline: 'noon today',
+        reason: 'a security update requires all passwords to be checked',
+        problem: 'one employee cannot sign in after the update',
+        request: 'verify the employee account',
+        action: 'reset the user password',
+        keywords: ['password', 'security', 'account']
+    },
+    {
+        title: 'Interview Schedule',
+        zh: '面試安排',
+        item: 'interview schedule',
+        object: 'candidate information',
+        location: 'interview room',
+        placePhrase: 'in the interview room',
+        role: 'recruiter',
+        contact: 'the hiring team',
+        deadline: '4 p.m. today',
+        reason: 'a candidate will visit the office tomorrow morning',
+        problem: 'the final interview time has not been printed',
+        request: 'review the candidate information',
+        action: 'print the final schedule',
+        keywords: ['interview', 'candidate', 'schedule']
+    },
+    {
+        title: 'Supplier Meeting',
+        zh: '採購會議',
+        item: 'supplier meeting',
+        object: 'price list',
+        location: 'conference room B',
+        placePhrase: 'in conference room B',
+        role: 'purchasing manager',
+        contact: 'the purchasing office',
+        deadline: 'the meeting starts',
+        reason: 'the team will discuss supplier pricing',
+        problem: 'the old price list is no longer accurate',
+        request: 'compare the updated prices',
+        action: 'bring the latest price list',
+        keywords: ['supplier', 'prices', 'meeting']
+    },
+    {
+        title: 'Shipping Labels',
+        zh: '貨運標籤',
+        item: 'shipping labels',
+        object: 'destination addresses',
+        location: 'mail room',
+        placePhrase: 'in the mail room',
+        role: 'logistics clerk',
+        contact: 'the mail room',
+        deadline: 'tomorrow afternoon',
+        reason: 'several international packages are ready to send',
+        problem: 'some labels still show old destination addresses',
+        request: 'check the destination addresses',
+        action: 'print new shipping labels',
+        keywords: ['shipping', 'labels', 'addresses']
+    }
 ];
 
 const TIME_OPTIONS = [
@@ -44,10 +208,60 @@ const TIME_OPTIONS = [
     'early next week'
 ];
 
-const WRONG_TOPICS = ['printer ink', 'meeting folders', 'company uniforms', 'phone chargers', 'training videos', 'parking receipts'];
-const WRONG_PLACES = ['parking garage', 'cafeteria entrance', 'main elevator', 'customer lounge', 'sales office', 'delivery truck'];
-const WRONG_TIMES = ['next month', 'late tonight', 'after the holiday', 'at midnight', 'next summer', 'during lunch'];
-const WRONG_ACTIONS = ['cancel the event', 'close the office', 'delete the report', 'change the company name', 'hire a photographer', 'move the building'];
+const WRONG_ITEMS = [
+    'parking permit request',
+    'restaurant menu',
+    'holiday schedule',
+    'visitor badge list',
+    'sales brochure',
+    'office furniture plan',
+    'training video',
+    'lunch voucher form'
+];
+
+const WRONG_PLACES = [
+    'parking garage',
+    'cafeteria entrance',
+    'customer lounge',
+    'main elevator',
+    'sales office',
+    'hotel lobby',
+    'airport gate',
+    'break room'
+];
+
+const WRONG_REASONS = [
+    'a menu will be changed',
+    'a parking area is closed',
+    'a company picnic was announced',
+    'a hotel room was cleaned',
+    'a visitor badge was lost',
+    'a new desk was delivered',
+    'a restaurant discount was offered',
+    'a bus route was changed'
+];
+
+const WRONG_ACTIONS = [
+    'reserve a parking space',
+    'update a lunch menu',
+    'print visitor badges',
+    'move office furniture',
+    'cancel a staff event',
+    'check a hotel brochure',
+    'collect parking receipts',
+    'send a museum schedule'
+];
+
+const WRONG_CONTACTS = [
+    'the cafeteria manager',
+    'a taxi driver',
+    'the museum guide',
+    'a bank teller',
+    'the parking attendant',
+    'a hotel guest',
+    'the restaurant owner',
+    'a tour group'
+];
 
 function padDay(day) {
     return String(day).padStart(2, '0');
@@ -81,6 +295,10 @@ function makeOptions(answer, wrongPool, answerKey = 'A', offset = 0) {
     return keys.map((key) => ({ key, text: result[key] }));
 }
 
+function sentenceCase(text) {
+    return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+}
+
 function makeWrongExplanations(question, clue, wrongReason = '音檔沒有提供這個線索') {
     const correctOption = question.options.find((option) => option.key === question.answerKey);
     return question.options
@@ -99,137 +317,138 @@ function withChineseExplanation(question, zhExplanation, clue, wrongReason) {
     };
 }
 
-function buildPart1(day, topic, time) {
-    const audioText = `In the picture, one employee is checking the ${topic.focus} in the ${topic.location}. Another employee is preparing notes for the ${topic.person}. Some documents are placed on a table near the entrance.`;
+function buildPart1(day, topic) {
+    const audioText = `One employee is checking the ${topic.object} ${topic.placePhrase}. Another employee is writing notes for the ${topic.role}. Several documents are on the table near the door.`;
     return {
         audioText,
         transcript: `Narrator: ${audioText}`,
-        translation: `中文重點：圖片描述訓練。有人在 ${topic.location} 檢查 ${topic.focus}，另一位員工正在為 ${topic.person} 準備資料。`,
+        translation: `中文摘要：一名員工正在 ${topic.location} 檢查 ${topic.object}，另一名員工正在替 ${topic.role} 寫筆記，門邊桌上有幾份文件。`,
         questions: [
             withChineseExplanation({
                 id: 'q1',
                 question: 'What is one employee checking?',
-                options: makeOptions(topic.focus, WRONG_TOPICS, 'A', day),
+                options: makeOptions(topic.object, WRONG_ITEMS, 'A', day),
                 answerKey: 'A',
-                explanation: `The employee is checking the ${topic.focus}.`
-            }, `題目問其中一位員工正在檢查什麼。音檔第一句說「checking the ${topic.focus}」，所以答案是 ${topic.focus}。`, `checking the ${topic.focus}`),
+                explanation: `One employee is checking the ${topic.object}.`
+            }, `題目問員工正在檢查什麼。音檔直接說 checking the ${topic.object}，所以答案是 ${topic.object}。`, `checking the ${topic.object}`, '其他選項沒有在音檔中被檢查'),
             withChineseExplanation({
                 id: 'q2',
-                question: 'Where is the person working?',
+                question: 'Where is the employee working?',
                 options: makeOptions(topic.location, WRONG_PLACES, 'B', day),
                 answerKey: 'B',
-                explanation: `The person is working in the ${topic.location}.`
-            }, `題目問人物所在位置。音檔說員工在 ${topic.location} 檢查物品，因此地點是 ${topic.location}。`, `in the ${topic.location}`),
+                explanation: `The employee is working ${topic.placePhrase}.`
+            }, `題目問地點。音檔說 ${topic.placePhrase}，因此地點是 ${topic.location}。`, topic.placePhrase, '其他地點沒有被提到'),
             withChineseExplanation({
                 id: 'q3',
                 question: 'What is on the table?',
-                options: makeOptions('Some documents', ['A laptop bag', 'Several coffee cups', 'A flower vase', 'A visitor badge'], 'C', day),
+                options: makeOptions('Several documents', ['A laptop bag', 'Some coffee cups', 'A flower vase', 'A visitor badge', 'A phone charger'], 'C', day),
                 answerKey: 'C',
-                explanation: 'Some documents are placed on a table near the entrance.'
-            }, '題目問桌上有什麼。音檔最後說一些文件放在入口附近的桌上，所以答案是 Some documents。', 'Some documents are placed on a table')
+                explanation: 'Several documents are on the table near the door.'
+            }, '題目問桌上有什麼。音檔說 Several documents are on the table near the door，所以答案是 Several documents。', 'Several documents are on the table', '其他物品不是音檔中的桌上物品')
         ]
     };
 }
 
 function buildPart2(day, topic, time) {
-    const audioText = `Could you check the ${topic.focus} ${time}? I need it for ${topic.reason}. Yes. It is in the ${topic.location}, and I will notify the ${topic.person} right away.`;
+    const audioText = `Could you ${topic.request} ${time}? This is important because ${topic.reason}. Yes, I will ${topic.action} and update ${topic.contact}.`;
     return {
         audioText,
-        transcript: `A: Could you check the ${topic.focus} ${time}? I need it for ${topic.reason}.\nB: Yes. It is in the ${topic.location}, and I will notify the ${topic.person} right away.`,
-        translation: `中文重點：詢問 ${topic.zh}。重點是 ${topic.focus}、${topic.location}，以及通知 ${topic.person}。`,
+        transcript: `A: Could you ${topic.request} ${time}? This is important because ${topic.reason}.\nB: Yes, I will ${topic.action} and update ${topic.contact}.`,
+        translation: `中文摘要：第一位說話者請對方在 ${time} ${topic.request}，原因是 ${topic.reason}。第二位說話者會 ${topic.action}，並通知 ${topic.contact}。`,
         questions: [
             withChineseExplanation({
                 id: 'q1',
-                question: 'What does the first speaker ask about?',
-                options: makeOptions(topic.focus, WRONG_TOPICS, 'A', day),
+                question: 'What does the first speaker ask the second speaker to do?',
+                options: makeOptions(topic.request, WRONG_ACTIONS, 'A', day),
                 answerKey: 'A',
-                explanation: `The first speaker asks about the ${topic.focus}.`
-            }, `題目問第一位說話者在詢問什麼。開頭直接說「Could you check the ${topic.focus}」，所以答案是 ${topic.focus}。`, `Could you check the ${topic.focus}`),
+                explanation: `The first speaker asks the second speaker to ${topic.request}.`
+            }, `題目問第一位說話者要求什麼。開頭是 Could you ${topic.request}，所以答案是 ${topic.request}。`, `Could you ${topic.request}`, '其他動作不是第一位說話者提出的要求'),
             withChineseExplanation({
                 id: 'q2',
-                question: 'Where is it located?',
-                options: makeOptions(topic.location, WRONG_PLACES, 'B', day),
+                question: 'Why is it needed?',
+                options: makeOptions(topic.reason, WRONG_REASONS, 'B', day),
                 answerKey: 'B',
-                explanation: `It is in the ${topic.location}.`
-            }, `題目問物品或資料在哪裡。第二位說話者回答「It is in the ${topic.location}」，所以答案是 ${topic.location}。`, `It is in the ${topic.location}`),
+                explanation: `It is important because ${topic.reason}.`
+            }, `題目問原因。音檔說 This is important because ${topic.reason}，所以答案是 ${topic.reason}。`, `This is important because ${topic.reason}`, '其他原因沒有在音檔中出現'),
             withChineseExplanation({
                 id: 'q3',
-                question: 'Who will be notified?',
-                options: makeOptions(topic.person, ['security guard', 'delivery driver', 'restaurant owner', 'bank teller', 'tour guide', 'hotel guest'], 'C', day),
+                question: 'Who will receive an update?',
+                options: makeOptions(topic.contact, WRONG_CONTACTS, 'C', day),
                 answerKey: 'C',
-                explanation: `The second speaker will notify the ${topic.person}.`
-            }, `題目問誰會被通知。對話結尾說「I will notify the ${topic.person}」，所以答案是 ${topic.person}。`, `notify the ${topic.person}`)
+                explanation: `The second speaker will update ${topic.contact}.`
+            }, `題目問誰會收到更新。第二位說話者說 update ${topic.contact}，因此答案是 ${topic.contact}。`, `update ${topic.contact}`, '其他人物或單位不是更新對象')
         ]
     };
 }
 
 function buildPart3(day, topic, time) {
-    const audioText = `We have a problem with the ${topic.focus}. It is needed for ${topic.reason}, but the current information is incomplete. Could you ${topic.action} and inform the ${topic.person}? Yes, I will take care of it and send a short update ${time}.`;
+    const problemSentence = sentenceCase(topic.problem);
+    const audioText = `We have a problem with the ${topic.item}. ${problemSentence}. Should I ${topic.action} before ${topic.deadline}? Yes, and please tell ${topic.contact}. I will send a short update ${time}.`;
     return {
         audioText,
-        transcript: `A: We have a problem with the ${topic.focus}. It is needed for ${topic.reason}, but the current information is incomplete.\nB: Could you ${topic.action} and inform the ${topic.person}?\nA: Yes, I will take care of it and send a short update ${time}.`,
-        translation: `中文重點：對話在處理 ${topic.zh} 的問題。資料不完整，需要 ${topic.action}，並在 ${time} 更新 ${topic.person}。`,
+        transcript: `A: We have a problem with the ${topic.item}. ${problemSentence}.\nB: Should I ${topic.action} before ${topic.deadline}?\nA: Yes, and please tell ${topic.contact}. I will send a short update ${time}.`,
+        translation: `中文摘要：兩人討論 ${topic.item} 的問題：${topic.problem}。第二位說話者會 ${topic.action}，並通知 ${topic.contact}。`,
         questions: [
             withChineseExplanation({
                 id: 'q1',
-                question: 'What is the problem?',
-                options: makeOptions(`The ${topic.focus} information is incomplete`, ['The office is closed today', 'The customer paid twice', 'The weather report is missing', 'The elevator is too crowded'], 'A', day),
+                question: 'What problem are the speakers discussing?',
+                options: makeOptions(topic.problem, WRONG_REASONS, 'A', day),
                 answerKey: 'A',
-                explanation: `The current information about the ${topic.focus} is incomplete.`
-            }, `題目問問題是什麼。音檔說 ${topic.focus} 目前資訊不完整，因此答案是資訊不完整。`, `the current information is incomplete`),
+                explanation: `They are discussing that ${topic.problem}.`
+            }, `題目問討論的問題。音檔第二句直接說 ${topic.problem}，所以答案是這個問題。`, topic.problem, '其他選項不是對話中的問題'),
             withChineseExplanation({
                 id: 'q2',
-                question: 'What is the speaker asked to do?',
+                question: 'What will the second speaker probably do?',
                 options: makeOptions(topic.action, WRONG_ACTIONS, 'B', day),
                 answerKey: 'B',
-                explanation: `The speaker is asked to ${topic.action}.`
-            }, `題目問說話者被要求做什麼。第二位說話者說「Could you ${topic.action}」，所以答案是 ${topic.action}。`, `Could you ${topic.action}`),
+                explanation: `The second speaker will probably ${topic.action}.`
+            }, `題目問第二位說話者可能會做什麼。他問 Should I ${topic.action}，對方回答 Yes，所以答案是 ${topic.action}。`, `Should I ${topic.action}`, '其他動作沒有被同意或要求'),
             withChineseExplanation({
                 id: 'q3',
-                question: 'When will an update be sent?',
-                options: makeOptions(time, WRONG_TIMES, 'C', day),
+                question: 'Who should be told?',
+                options: makeOptions(topic.contact, WRONG_CONTACTS, 'C', day),
                 answerKey: 'C',
-                explanation: `A short update will be sent ${time}.`
-            }, `題目問更新何時送出。最後一句說「send a short update ${time}」，所以答案是 ${time}。`, `send a short update ${time}`)
+                explanation: `${topic.contact} should be told.`
+            }, `題目問應該通知誰。音檔說 please tell ${topic.contact}，所以答案是 ${topic.contact}。`, `please tell ${topic.contact}`, '其他人物或單位不是通知對象')
         ]
     };
 }
 
 function buildPart4(day, topic, time) {
-    const audioText = `This is a notice for all staff. Due to ${topic.reason}, the ${topic.focus} in the ${topic.location} will be checked today. If you need assistance, please ask the ${topic.person} or visit the service desk ${time}.`;
+    const audioText = `This is a reminder for all staff. Because ${topic.reason}, the ${topic.item} must be ready by ${topic.deadline}. Please ${topic.request} and contact ${topic.contact} if you need help. A brief update will be sent ${time}.`;
     return {
         audioText,
         transcript: `Announcement: ${audioText}`,
-        translation: `中文重點：公告說明 ${topic.zh}。因為 ${topic.reason}，${topic.location} 的 ${topic.focus} 會被檢查，需要協助可找 ${topic.person}。`,
+        translation: `中文摘要：這是一則員工提醒。因為 ${topic.reason}，${topic.item} 必須在 ${topic.deadline} 前準備好。員工要 ${topic.request}，需要協助可聯絡 ${topic.contact}。`,
         questions: [
             withChineseExplanation({
                 id: 'q1',
-                question: 'What is the notice mainly about?',
-                options: makeOptions(topic.focus, WRONG_TOPICS, 'A', day),
+                question: 'What is the reminder mainly about?',
+                options: makeOptions(topic.item, WRONG_ITEMS, 'A', day),
                 answerKey: 'A',
-                explanation: `The notice is mainly about the ${topic.focus}.`
-            }, `題目問公告主旨。公告主體提到要檢查 ${topic.location} 的 ${topic.focus}，所以主旨是 ${topic.focus}。`, `the ${topic.focus} in the ${topic.location} will be checked`),
+                explanation: `The reminder is mainly about the ${topic.item}.`
+            }, `題目問公告主旨。音檔說 the ${topic.item} must be ready，因此主題是 ${topic.item}。`, `the ${topic.item} must be ready`, '其他選項不是公告主要內容'),
             withChineseExplanation({
                 id: 'q2',
-                question: 'Why is the item being checked?',
-                options: makeOptions(topic.reason, ['a holiday party', 'a restaurant discount', 'a parking ticket', 'a lost suitcase', 'a museum tour', 'a movie schedule'], 'B', day),
+                question: 'Why is this reminder being given?',
+                options: makeOptions(topic.reason, WRONG_REASONS, 'B', day),
                 answerKey: 'B',
-                explanation: `It is being checked because of ${topic.reason}.`
-            }, `題目問為什麼要檢查。公告說「Due to ${topic.reason}」，所以原因是 ${topic.reason}。`, `Due to ${topic.reason}`),
+                explanation: `The reminder is being given because ${topic.reason}.`
+            }, `題目問提醒原因。音檔說 Because ${topic.reason}，所以答案是 ${topic.reason}。`, `Because ${topic.reason}`, '其他原因沒有在公告中提到'),
             withChineseExplanation({
                 id: 'q3',
-                question: 'Who can staff ask for assistance?',
-                options: makeOptions(topic.person, ['taxi driver', 'tour guide', 'store cashier', 'bank customer', 'museum visitor', 'delivery customer'], 'C', day),
+                question: 'What are staff members asked to do?',
+                options: makeOptions(topic.request, WRONG_ACTIONS, 'C', day),
                 answerKey: 'C',
-                explanation: `Staff can ask the ${topic.person} for assistance.`
-            }, `題目問員工需要協助時可以找誰。公告說「please ask the ${topic.person}」，所以答案是 ${topic.person}。`, `please ask the ${topic.person}`)
+                explanation: `Staff members are asked to ${topic.request}.`
+            }, `題目問員工被要求做什麼。音檔說 Please ${topic.request}，所以答案是 ${topic.request}。`, `Please ${topic.request}`, '其他動作不是公告要求')
         ]
     };
 }
 
 function buildLesson(day) {
-    const topic = TOPICS[(day - 1) % TOPICS.length];
-    const time = TIME_OPTIONS[(day + Math.floor((day - 1) / TOPICS.length)) % TIME_OPTIONS.length];
+    const topic = CONTEXTS[(day - 1) % CONTEXTS.length];
+    const time = TIME_OPTIONS[(day + Math.floor((day - 1) / CONTEXTS.length)) % TIME_OPTIONS.length];
     const part = PART_SEQUENCE[(day - 1) % PART_SEQUENCE.length];
     const builders = {
         'Part 1': buildPart1,

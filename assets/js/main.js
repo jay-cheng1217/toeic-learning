@@ -14,13 +14,13 @@ import { registerServiceWorkerUpdater, scheduleUpdateNoticeAfterAppReady } from 
 import { initInstallPrompt } from './installPrompt.js';
 import { startSpeakingSession, stopSpeakingSession } from './speakingLive.js';
 import { flattenExamQuestions, renderExamQuestions, gradeExam, buildWrongPayload, playListeningQuestion, resolveChoice } from './exam.js';
-import { SUPPORTED_LOCALES, applyTranslations, detectBrowserLocale, getLocale, setLocale, t } from './i18n.js?v=1.14.5';
+import { SUPPORTED_LOCALES, applyTranslations, detectBrowserLocale, getLocale, setLocale, t } from './i18n.js?v=1.14.7';
 import { logError, toErrorMessage } from './errorPolicy.js';
 import { createId } from './id.js';
 import { safeLocalGet, safeLocalRemove, safeLocalSet } from './storageSafe.js';
 import { SPEAKING_LEVELS, getSpeakingLevelByScore } from './speakingLevel.js';
 import { fetchVersionInfo, getBootVersionInfo } from './versioning.js';
-import { initStudyPlan, renderStudyPlan } from './studyPlan.js?v=1.14.5';
+import { initStudyPlan, renderStudyPlan } from './studyPlan.js?v=1.14.7';
 import {
     resetSpeakingPracticeView as viewResetSpeakingPractice,
     showSpeakingConfigView as viewShowSpeakingConfig,
