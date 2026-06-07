@@ -1,47 +1,35 @@
-// PWA Service Worker registration, automatic update, and post-update modal.
+// PWA Service Worker registration and silent update checks.
 
-import { t } from './i18n.js';
 import { DB } from './db.js';
-import {
-  safeLocalGet,
-  safeLocalRemove,
-  safeSessionGet,
-  safeSessionRemove,
-  safeSessionSet
-} from './storageSafe.js';
+import { safeLocalGet, safeLocalRemove } from './storageSafe.js';
 import { fetchVersionInfo, getBootVersionInfo, normalizeVersionInfo } from './versioning.js';
 
 const UPDATE_ACK_VERSION_KEY = 'update_ack_version';
 const LEGACY_PENDING_KEY = 'update_ack_pending';
-const PENDING_UPDATE_INFO_KEY = 'toeic_pending_update_info';
-const ACTIVATION_APPROVED_KEY = 'toeic_sw_activation_approved';
 const UPDATE_CHECK_THROTTLE_MS = 30000;
 
 const updateState = {
   acknowledgedVersion: null,
-  pendingInfo: null,
   registration: null,
   waitingWorker: null,
-  modalVisible: false,
-  reloadAuthorized: safeSessionGet(ACTIVATION_APPROVED_KEY) === '1',
-  isReloading: false,
   lastUpdateCheckAt: 0
 };
 
 async function getAcknowledgedVersion() {
   try {
-    let v = await DB.getSetting(UPDATE_ACK_VERSION_KEY);
-    if (v != null) return v;
-    const legacy = safeLocalGet(UPDATE_ACK_VERSION_KEY);
-    if (legacy) {
-      await DB.setSetting(UPDATE_ACK_VERSION_KEY, legacy);
+    const storedVersion = await DB.getSetting(UPDATE_ACK_VERSION_KEY);
+    if (storedVersion != null) return storedVersion;
+
+    const legacyVersion = safeLocalGet(UPDATE_ACK_VERSION_KEY);
+    if (legacyVersion) {
+      await DB.setSetting(UPDATE_ACK_VERSION_KEY, legacyVersion);
       safeLocalRemove(UPDATE_ACK_VERSION_KEY);
-      return legacy;
+      return legacyVersion;
     }
-    return null;
   } catch {
     return safeLocalGet(UPDATE_ACK_VERSION_KEY);
   }
+  return null;
 }
 
 async function setAcknowledgedVersion(version) {
@@ -53,40 +41,13 @@ function migrateLegacyPendingKey() {
   safeLocalRemove(LEGACY_PENDING_KEY);
 }
 
-function readPendingUpdateInfo() {
-  const raw = safeSessionGet(PENDING_UPDATE_INFO_KEY);
-  if (!raw) return null;
-  try {
-    return normalizeVersionInfo(JSON.parse(raw));
-  } catch {
-    safeSessionRemove(PENDING_UPDATE_INFO_KEY);
-    return null;
-  }
-}
-
-function storePendingUpdateInfo(info) {
-  const normalized = normalizeVersionInfo(info);
-  updateState.pendingInfo = normalized;
-  if (normalized) {
-    safeSessionSet(PENDING_UPDATE_INFO_KEY, JSON.stringify(normalized));
-    return normalized;
-  }
-  safeSessionRemove(PENDING_UPDATE_INFO_KEY);
-  return null;
-}
-
-function clearPendingUpdateInfo() {
-  updateState.pendingInfo = null;
-  safeSessionRemove(PENDING_UPDATE_INFO_KEY);
-}
-
 async function resolveLatestVersionInfo({ preferNetwork = true } = {}) {
   let info = getBootVersionInfo();
   if (!preferNetwork) return normalizeVersionInfo(info);
 
   try {
-    const net = await fetchVersionInfo(true);
-    if (net) info = net;
+    const networkInfo = await fetchVersionInfo(true);
+    if (networkInfo) info = networkInfo;
   } catch {
     /* use boot-only */
   }
@@ -96,166 +57,44 @@ async function resolveLatestVersionInfo({ preferNetwork = true } = {}) {
 
 function getWaitingWorker(registration = updateState.registration) {
   if (!registration) return null;
-  return registration.waiting || registration.installing || null;
+  return registration.waiting || null;
 }
 
-function markReloadAuthorized(authorized) {
-  updateState.reloadAuthorized = authorized;
-  if (authorized) {
-    safeSessionSet(ACTIVATION_APPROVED_KEY, '1');
-    return;
-  }
-  safeSessionRemove(ACTIVATION_APPROVED_KEY);
+function autoActivate(worker) {
+  if (worker) worker.postMessage('skipWaiting');
 }
 
-function waitForWaitingWorker(timeoutMs = 4000) {
-  return new Promise((resolve) => {
-    const registration = updateState.registration;
-    if (!registration) {
-      resolve(null);
-      return;
-    }
-
-    if (registration.waiting) {
-      resolve(registration.waiting);
-      return;
-    }
-
-    const installing = registration.installing;
-    if (!installing) {
-      resolve(null);
-      return;
-    }
-
-    let settled = false;
-    const finish = (worker) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(worker || null);
-    };
-
-    const timer = setTimeout(() => finish(registration.waiting || null), timeoutMs);
-    installing.addEventListener('statechange', () => {
-      if (registration.waiting) {
-        finish(registration.waiting);
-        return;
-      }
-      if (installing.state === 'redundant') {
-        finish(null);
-      }
-    });
-  });
-}
-
-async function purgeAndReload() {
-  if (updateState.isReloading) return;
-  updateState.isReloading = true;
-  markReloadAuthorized(false);
+async function acknowledgeVersionSilently(info) {
+  const normalized = normalizeVersionInfo(info);
+  if (!normalized?.version) return null;
 
   try {
-    await purgeAppCaches();
-  } catch {
-    /* keep reload resilient */
+    await setAcknowledgedVersion(normalized.version);
+    updateState.acknowledgedVersion = normalized.version;
+  } catch (err) {
+    console.warn('Failed to store latest version acknowledgement:', err);
   }
 
-  window.location.reload();
+  return normalized;
 }
 
-async function applyApprovedUpdate() {
-  markReloadAuthorized(true);
-  updateState.waitingWorker = getWaitingWorker();
-
-  if (updateState.waitingWorker && updateState.registration?.waiting) {
-    autoActivate(updateState.waitingWorker);
-    return;
-  }
-
-  try {
-    await updateState.registration?.update();
-  } catch {
-    /* keep fallback resilient */
-  }
-
-  updateState.waitingWorker = await waitForWaitingWorker();
-  if (updateState.waitingWorker && updateState.registration?.waiting) {
-    autoActivate(updateState.waitingWorker);
-    return;
-  }
-
-  await purgeAndReload();
-}
-
-function showUpdateModal(info) {
-  if (updateState.modalVisible || document.getElementById('updateOverlay')) return;
-  updateState.modalVisible = true;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'updateOverlay';
-  overlay.className = 'update-overlay';
-
-  overlay.innerHTML = `
-    <div class="update-modal">
-      <div class="update-modal-icon">✓</div>
-      <h2 class="update-modal-title">${t('updaterTitle', { version: info.version })}</h2>
-      <ul class="update-modal-changes">
-        ${info.changes.map((c) => `<li>${c}</li>`).join('')}
-      </ul>
-      <p class="update-modal-notice">${t('updaterNotice')}</p>
-      <button class="update-modal-btn" id="btnUpdateAck">${t('updaterAck')}</button>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-
-  const ackButton = document.getElementById('btnUpdateAck');
-  ackButton.addEventListener('click', async () => {
-    if (ackButton.disabled) return;
-    ackButton.disabled = true;
-
-    try {
-      await setAcknowledgedVersion(info.version);
-      updateState.acknowledgedVersion = info.version;
-      clearPendingUpdateInfo();
-      updateState.modalVisible = false;
-      overlay.remove();
-      await applyApprovedUpdate();
-    } catch (err) {
-      console.warn('Failed to save update acknowledgement:', err);
-      ackButton.disabled = false;
-    }
-  });
-}
-
-async function maybeShowUpdateNotice({ preferNetwork = true } = {}) {
+async function syncLatestVersionSilently({ preferNetwork = true } = {}) {
   migrateLegacyPendingKey();
 
-  const ack = await getAcknowledgedVersion();
-  updateState.acknowledgedVersion = ack;
+  const acknowledgedVersion = await getAcknowledgedVersion();
+  updateState.acknowledgedVersion = acknowledgedVersion;
 
-  const pending = readPendingUpdateInfo();
-  if (pending) {
-    updateState.pendingInfo = pending;
+  const latestInfo = await resolveLatestVersionInfo({ preferNetwork });
+  if (!latestInfo) return null;
+
+  if (latestInfo.version !== acknowledgedVersion) {
+    await acknowledgeVersionSilently(latestInfo);
   }
 
-  const normalized = await resolveLatestVersionInfo({ preferNetwork });
-  const candidate = normalized || updateState.pendingInfo;
+  updateState.waitingWorker = getWaitingWorker();
+  if (updateState.waitingWorker) autoActivate(updateState.waitingWorker);
 
-  if (!candidate) return null;
-
-  if (candidate.version === ack) {
-    if (updateState.registration?.waiting) {
-      updateState.waitingWorker = updateState.registration.waiting;
-      markReloadAuthorized(true);
-      autoActivate(updateState.waitingWorker);
-    }
-    clearPendingUpdateInfo();
-    return candidate;
-  }
-
-  storePendingUpdateInfo(candidate);
-  showUpdateModal(candidate);
-  return candidate;
+  return latestInfo;
 }
 
 export function scheduleUpdateNoticeAfterAppReady() {
@@ -267,25 +106,11 @@ export function scheduleUpdateNoticeAfterAppReady() {
           requestAnimationFrame(runWhenRevealed);
           return;
         }
-        maybeShowUpdateNotice().catch(() => {});
+        syncLatestVersionSilently().catch(() => {});
       };
       requestAnimationFrame(runWhenRevealed);
     },
     { once: true }
-  );
-}
-
-function autoActivate(worker) {
-  if (worker) worker.postMessage('skipWaiting');
-}
-
-async function purgeAppCaches() {
-  if (!('caches' in window)) return;
-  const keys = await caches.keys();
-  await Promise.all(
-    keys
-      .filter((k) => k.startsWith('toeic-tutor-static'))
-      .map((k) => caches.delete(k))
   );
 }
 
@@ -300,23 +125,17 @@ async function triggerUpdateCheck({ force = false } = {}) {
     /* keep update checks resilient */
   }
 
-  maybeShowUpdateNotice({ preferNetwork: true }).catch(() => {});
+  syncLatestVersionSilently({ preferNetwork: true }).catch(() => {});
 }
 
 export async function registerServiceWorkerUpdater() {
   if (!('serviceWorker' in navigator) || updateState.registration) return;
 
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!updateState.reloadAuthorized && safeSessionGet(ACTIVATION_APPROVED_KEY) !== '1') {
-      return;
-    }
-    purgeAndReload().catch(() => {});
-  });
-
   try {
     const reg = await navigator.serviceWorker.register('./sw.js');
     updateState.registration = reg;
-    updateState.waitingWorker = reg.waiting || null;
+    updateState.waitingWorker = getWaitingWorker(reg);
+    if (updateState.waitingWorker) autoActivate(updateState.waitingWorker);
 
     triggerUpdateCheck({ force: true }).catch(() => {});
 
@@ -325,13 +144,10 @@ export async function registerServiceWorkerUpdater() {
       if (!installing) return;
 
       installing.addEventListener('statechange', () => {
-        if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-          updateState.waitingWorker = reg.waiting || installing;
-          if (updateState.reloadAuthorized) {
-            autoActivate(updateState.waitingWorker);
-            return;
-          }
-          maybeShowUpdateNotice({ preferNetwork: true }).catch(() => {});
+        if (installing.state === 'installed') {
+          updateState.waitingWorker = getWaitingWorker(reg);
+          if (updateState.waitingWorker) autoActivate(updateState.waitingWorker);
+          syncLatestVersionSilently({ preferNetwork: true }).catch(() => {});
         }
       });
     });
@@ -344,8 +160,8 @@ export async function registerServiceWorkerUpdater() {
       if (document.visibilityState === 'visible') triggerUpdate();
     });
 
-    window.addEventListener('pageshow', (e) => {
-      if (e.persisted) triggerUpdate();
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) triggerUpdate();
     });
   } catch (err) {
     console.warn('SW registration failed:', err);
