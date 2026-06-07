@@ -48,9 +48,9 @@ const SUNDAY_MINUTES = {
 };
 
 const MODE_QUESTION_COUNTS = {
-    short: { listening: 2, reading: 2, bonusListening: 0, bonusReading: 0 },
-    standard: { listening: 3, reading: 3, bonusListening: 0, bonusReading: 0 },
-    full: { listening: 3, reading: 3, bonusListening: 2, bonusReading: 2 }
+    short: { listening: 4, reading: 4 },
+    standard: { listening: 6, reading: 6 },
+    full: { listening: 10, reading: 10 }
 };
 
 const WEEK_PLANS = [
@@ -547,8 +547,8 @@ function getModeQuestionCounts(modeId = planState.commuteMode) {
 
 function getModeQuestionTotals(modeId = planState.commuteMode) {
     const config = getModeQuestionCounts(modeId);
-    const listening = config.listening + config.bonusListening;
-    const reading = config.reading + config.bonusReading;
+    const listening = config.listening;
+    const reading = config.reading;
     return { listening, reading, total: listening + reading };
 }
 
@@ -562,36 +562,49 @@ function markModeQuestion(question, lesson, bonus = false) {
     };
 }
 
-function getModeListeningQuestions(dayIndex, modeId = planState.commuteMode) {
-    const lesson = getListeningLessonForDay(dayIndex);
-    if (!lesson) return { lesson: null, questions: [] };
-    const config = getModeQuestionCounts(modeId);
-    const questions = lesson.questions
-        .slice(0, config.listening)
-        .map((question) => markModeQuestion(question, lesson, false));
-    if (config.bonusListening > 0) {
-        const bonusLesson = getListeningLessonForDay(Math.min(PLAN_DAYS, Number(dayIndex) + 1));
-        bonusLesson.questions
-            .slice(0, config.bonusListening)
-            .forEach((question) => questions.push(markModeQuestion(question, bonusLesson, true)));
+function getWrappedPlanDay(dayIndex, offset = 0) {
+    const start = Number.isFinite(Number(dayIndex)) ? Math.floor(Number(dayIndex)) : 1;
+    const raw = start + offset;
+    return ((raw - 1) % PLAN_DAYS) + 1;
+}
+
+function collectModeQuestions(dayIndex, count, getLesson) {
+    const primaryLesson = getLesson(dayIndex);
+    if (!primaryLesson) return { lesson: null, groups: [], questions: [] };
+    const groups = [];
+    let remaining = Math.max(0, Number(count) || 0);
+    let offset = 0;
+
+    while (remaining > 0 && offset < PLAN_DAYS) {
+        const lesson = getLesson(getWrappedPlanDay(dayIndex, offset));
+        const pool = Array.isArray(lesson?.questions) ? lesson.questions : [];
+        const take = Math.min(remaining, pool.length);
+        if (take > 0) {
+            const isBonus = offset > 0;
+            const questions = pool
+                .slice(0, take)
+                .map((question) => markModeQuestion(question, lesson, isBonus));
+            groups.push({ lesson, questions, isBonus });
+            remaining -= take;
+        }
+        offset += 1;
     }
-    return { lesson, questions };
+
+    return {
+        lesson: primaryLesson,
+        groups,
+        questions: groups.flatMap((group) => group.questions)
+    };
+}
+
+function getModeListeningQuestions(dayIndex, modeId = planState.commuteMode) {
+    const config = getModeQuestionCounts(modeId);
+    return collectModeQuestions(dayIndex, config.listening, getListeningLessonForDay);
 }
 
 function getModeReadingQuestions(dayIndex, modeId = planState.commuteMode) {
-    const lesson = getReadingLessonForDay(dayIndex);
-    if (!lesson) return { lesson: null, questions: [] };
     const config = getModeQuestionCounts(modeId);
-    const questions = lesson.questions
-        .slice(0, config.reading)
-        .map((question) => markModeQuestion(question, lesson, false));
-    if (config.bonusReading > 0) {
-        const bonusLesson = getReadingLessonForDay(Math.min(PLAN_DAYS, Number(dayIndex) + 1));
-        bonusLesson.questions
-            .slice(0, config.bonusReading)
-            .forEach((question) => questions.push(markModeQuestion(question, bonusLesson, true)));
-    }
-    return { lesson, questions };
+    return collectModeQuestions(dayIndex, config.reading, getReadingLessonForDay);
 }
 
 function renderTask(task, info) {
@@ -696,8 +709,41 @@ function renderListeningQuestion(lesson, question, index) {
     `;
 }
 
+function renderListeningGroup(answerLesson, group, startIndex) {
+    const lesson = group.lesson;
+    return `
+        <div class="plan-listening-group ${group.isBonus ? 'is-bonus' : ''}">
+            <div class="plan-listening-group-head">
+                <div>
+                    <span>${escapeHtml(group.isBonus ? t('planStrictBonusListening', { day: lesson.day }) : t('planStrictMainListening'))}</span>
+                    <strong>${escapeHtml(lesson.title)}</strong>
+                </div>
+                <small>${escapeHtml(t('planListeningPartLabel', { part: lesson.part }))}</small>
+            </div>
+            <div class="plan-listening-player">
+                <button class="plan-listening-play-btn" type="button" data-listening-play="${escapeHtml(lesson.id)}">
+                    ${ICONS.speaker}
+                    <span>${escapeHtml(t('planListeningReplay'))}</span>
+                </button>
+                <audio class="plan-listening-audio" controls preload="metadata" src="${escapeHtml(lesson.audioFile)}"></audio>
+            </div>
+            <div class="plan-listening-keywords">
+                ${lesson.keywords.map((word) => `<span>${escapeHtml(word)}</span>`).join('')}
+            </div>
+            <div class="plan-listening-questions">
+                ${group.questions.map((question, index) => renderListeningQuestion(answerLesson, question, startIndex + index)).join('')}
+            </div>
+            <details class="plan-listening-transcript">
+                <summary>${escapeHtml(t('planListeningTranscript'))}</summary>
+                <pre>${escapeHtml(lesson.transcript)}</pre>
+                <pre>${escapeHtml(lesson.translation)}</pre>
+            </details>
+        </div>
+    `;
+}
+
 function renderListeningDrill(info) {
-    const { lesson, questions } = getModeListeningQuestions(info.dayIndex);
+    const { lesson, groups, questions } = getModeListeningQuestions(info.dayIndex);
     if (!lesson) return '';
     const stats = getListeningStats(lesson, questions);
     const listenKey = taskKey(info.dayIndex, 'listen');
@@ -717,25 +763,11 @@ function renderListeningDrill(info) {
                     <small>${escapeHtml(t('planListeningScore'))}</small>
                 </div>
             </div>
-            <div class="plan-listening-player">
-                <button class="plan-listening-play-btn" type="button" data-listening-play="${escapeHtml(lesson.id)}">
-                    ${ICONS.speaker}
-                    <span>${escapeHtml(t('planListeningReplay'))}</span>
-                </button>
-                <audio class="plan-listening-audio" controls preload="metadata" src="${escapeHtml(lesson.audioFile)}"></audio>
-            </div>
             <p class="plan-listening-status hidden" data-listening-status></p>
-            <div class="plan-listening-keywords">
-                ${lesson.keywords.map((word) => `<span>${escapeHtml(word)}</span>`).join('')}
-            </div>
-            <div class="plan-listening-questions">
-                ${questions.map((question, index) => renderListeningQuestion(lesson, question, index)).join('')}
-            </div>
-            <details class="plan-listening-transcript">
-                <summary>${escapeHtml(t('planListeningTranscript'))}</summary>
-                <pre>${escapeHtml(lesson.transcript)}</pre>
-                <pre>${escapeHtml(lesson.translation)}</pre>
-            </details>
+            ${groups.map((group, groupIndex) => {
+                const startIndex = groups.slice(0, groupIndex).reduce((sum, item) => sum + item.questions.length, 0);
+                return renderListeningGroup(lesson, group, startIndex);
+            }).join('')}
             <div class="plan-listening-actions">
                 <p>${escapeHtml(canComplete ? t('planListeningReady') : t('planListeningNeedAnswers', { count: stats.total }))}</p>
                 <button class="plan-task-action plan-listening-complete-btn" type="button" data-listening-complete="${info.dayIndex}" ${canComplete ? '' : 'disabled'}>
@@ -1291,7 +1323,8 @@ async function resetPlan() {
 
 function playListeningAudio(button) {
     const card = button.closest('.plan-listening-card');
-    const audio = card?.querySelector('.plan-listening-audio');
+    const group = button.closest('.plan-listening-group');
+    const audio = group?.querySelector('.plan-listening-audio') || card?.querySelector('.plan-listening-audio');
     const status = card?.querySelector('[data-listening-status]');
     if (!audio) return;
     if (status) {

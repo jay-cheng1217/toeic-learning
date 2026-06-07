@@ -523,6 +523,48 @@ body {
     display: grid;
     gap: 10px;
 }
+.plan-listening-group {
+    display: grid;
+    gap: 10px;
+    border: 1px solid #e4e8ef;
+    border-radius: 12px;
+    background: #fbfcfe;
+    padding: 10px;
+}
+.plan-listening-group.is-bonus {
+    border-color: #cdeeff;
+    background: #f3fbff;
+}
+.plan-listening-group-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+.plan-listening-group-head div {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.plan-listening-group-head span {
+    color: #075985;
+    font-size: 11px;
+    font-weight: 900;
+}
+.plan-listening-group-head strong {
+    color: var(--text-main);
+    font-size: 14px;
+    line-height: 1.3;
+}
+.plan-listening-group-head small {
+    flex-shrink: 0;
+    color: #7c5f00;
+    background: #fff6d7;
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 800;
+}
 .plan-listening-question {
     display: grid;
     gap: 8px;
