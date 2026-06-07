@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'toeic-tutor-static';
-const CACHE_NAME = `${CACHE_PREFIX}-v26`;
+const CACHE_NAME = `${CACHE_PREFIX}-v27`;
 
 const STATIC_ASSETS = [
   './manifest.json',
@@ -125,6 +125,7 @@ const STATIC_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.delete(CACHE_NAME)
       .then(() => caches.open(CACHE_NAME))
@@ -187,18 +188,9 @@ self.addEventListener('fetch', (event) => {
   if (isScriptOrStyleRequest(event.request)) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
-        const cached = await cache.match(event.request);
-        const networkFetch = fetch(event.request)
+        const networkResp = await fetch(event.request)
           .then((response) => putIfOk(cache, event.request, response))
           .catch(() => null);
-
-        // stale-while-revalidate: fast cached response, refresh in background
-        if (cached) {
-          event.waitUntil(networkFetch);
-          return cached;
-        }
-
-        const networkResp = await networkFetch;
         if (networkResp) return networkResp;
         return cache.match(event.request) || cache.match(event.request, { ignoreSearch: true });
       })
