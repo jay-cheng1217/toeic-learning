@@ -4,7 +4,7 @@
 const TOTAL_TRAINING_DAYS = 84;
 
 const TOPICS = [
-    { company: 'Northline Office Supply', item: 'copy paper', place: 'storage room', role: 'office manager', action: 'place the order', reason: 'the afternoon meeting', zh: '辦公室用品' },
+    { company: 'Northline Office Supply', item: 'copy paper', place: 'storage room', role: 'office manager', action: 'place the order', reason: 'next week\'s staff meeting', zh: '辦公室用品' },
     { company: 'Blue Harbor Travel', item: 'flight itinerary', place: 'airport', role: 'travel coordinator', action: 'confirm the taxi pickup', reason: 'a sales conference', zh: '商務出差' },
     { company: 'Silver Desk Design', item: 'replacement request', place: 'front desk', role: 'service representative', action: 'schedule the pickup', reason: 'a wrong model', zh: '客戶退換貨' },
     { company: 'Bright Keyboards', item: 'inventory list', place: 'warehouse', role: 'purchasing manager', action: 'contact the supplier', reason: 'Friday installation work', zh: '庫存管理' },
@@ -170,7 +170,7 @@ function buildPart5(day, topic) {
 
 function buildPart6(day, topic) {
     const answerKey = 'B';
-    const passage = `To: All Staff\nSubject: ${topic.item}\n\nPlease remember that the ${topic.item} is needed for ${topic.reason}. The ${topic.role} will review the details this afternoon. If you have questions, please contact the team in the ${topic.place}. We expect to ___ by Friday.`;
+    const passage = `To: All Staff\nSubject: ${topic.item}\n\nPlease remember that the ${topic.item} needs attention because of ${topic.reason}. The ${topic.role} will review the details this afternoon and handle the next step. If you have questions, please contact the team in the ${topic.place}. The next step is to ___ after the review.`;
     return withChineseExplanation({
         id: 'q2',
         part: 'Part 6',
@@ -180,7 +180,7 @@ function buildPart6(day, topic) {
         options: makeOptions(topic.action, WRONG_ACTIONS, answerKey, day),
         answerKey,
         explanation: `The sentence needs an action that logically completes the task: "${topic.action}".`
-    }, `題目考段落補句。前文說這項工作需要被處理，最後一句是「We expect to ___ by Friday」，因此要填能完成任務的動作「${topic.action}」。`, `We expect to ${topic.action} by Friday`, '錯誤選項和段落中的工作任務沒有直接關係');
+    }, `題目考段落補句。前文說「${topic.item}」因為 ${topic.reason} 需要處理，且 ${topic.role} 會在 review 後處理下一步，所以空格要填能推進這項任務的動作「${topic.action}」。`, `The next step is to ${topic.action} after the review`, `錯誤選項沒有延續「${topic.item}」這個任務，也不是 review 後合理的下一步`);
 }
 
 function buildPart7(day, topic) {
