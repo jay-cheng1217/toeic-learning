@@ -293,9 +293,20 @@ body {
     color: var(--primary);
 }
 .plan-total-time {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
     color: var(--text-sub);
     font-size: 12px;
     font-weight: 700;
+}
+.plan-total-time span {
+    color: #166534;
+    background: #ecfdf3;
+    border: 1px solid #bbebc8;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-weight: 900;
 }
 .plan-task-list {
     display: grid;

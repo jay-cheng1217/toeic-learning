@@ -35,6 +35,24 @@ const MODE_MINUTES = {
     full: [15, 10, 15, 5, 5]
 };
 
+const SATURDAY_MINUTES = {
+    short: { listen: 6, miniTest: 8, reading: 6, repair: 0, vocabRepair: 0 },
+    standard: { listen: 10, miniTest: 15, reading: 10, repair: 0, vocabRepair: 0 },
+    full: { listen: 12, miniTest: 18, reading: 12, repair: 5, vocabRepair: 3 }
+};
+
+const SUNDAY_MINUTES = {
+    short: { listen: 6, weeklyReview: 8, reading: 6, preview: 0 },
+    standard: { listen: 10, weeklyReview: 10, reading: 10, preview: 5 },
+    full: { listen: 12, weeklyReview: 15, reading: 12, preview: 11 }
+};
+
+const MODE_QUESTION_COUNTS = {
+    short: { listening: 2, reading: 2, bonusListening: 0, bonusReading: 0 },
+    standard: { listening: 3, reading: 3, bonusListening: 0, bonusReading: 0 },
+    full: { listening: 3, reading: 3, bonusListening: 2, bonusReading: 2 }
+};
+
 const WEEK_PLANS = [
     {
         title: '診斷與基本盤',
@@ -354,14 +372,14 @@ function buildWeekdayTasks(week, modeId) {
 }
 
 function buildSaturdayTasks(week, modeId) {
-    const isShort = modeId === 'short';
+    const minutes = SATURDAY_MINUTES[modeId] || SATURDAY_MINUTES.standard;
     return [
         {
             id: 'listen',
             label: '週末聽力',
             title: week.listening,
             detail: '先完成上方聽力包，再重聽錯題句。',
-            minutes: isShort ? 8 : 12,
+            minutes: minutes.listen,
             action: 'listening',
             actionLabel: getActionLabel('listening')
         },
@@ -370,7 +388,7 @@ function buildSaturdayTasks(week, modeId) {
             label: '週末模考',
             title: `${week.title} 小模考`,
             detail: '用限時題檢查本週弱點。',
-            minutes: isShort ? 15 : 30,
+            minutes: minutes.miniTest,
             action: 'exam',
             actionLabel: getActionLabel('exam')
         },
@@ -379,7 +397,7 @@ function buildSaturdayTasks(week, modeId) {
             label: '週末閱讀',
             title: week.reading,
             detail: '完成上方閱讀題組，練 Part 5/6/7 的定位速度。',
-            minutes: isShort ? 8 : 12,
+            minutes: minutes.reading,
             action: 'reading',
             actionLabel: getActionLabel('reading')
         },
@@ -388,7 +406,7 @@ function buildSaturdayTasks(week, modeId) {
             label: '錯題回補',
             title: week.review,
             detail: '挑最痛的 3 題重新聽或重讀。',
-            minutes: isShort ? 5 : 15,
+            minutes: minutes.repair,
             action: 'history',
             actionLabel: getActionLabel('history')
         },
@@ -397,7 +415,7 @@ function buildSaturdayTasks(week, modeId) {
             label: '單字加固',
             title: '把錯題字加入 SRS',
             detail: '只收真正會再遇到的字。',
-            minutes: modeId === 'full' ? 5 : 0,
+            minutes: minutes.vocabRepair,
             action: 'vocab',
             actionLabel: getActionLabel('vocab')
         }
@@ -406,14 +424,14 @@ function buildSaturdayTasks(week, modeId) {
 
 function buildSundayTasks(dayIndex, week, modeId) {
     const nextWeek = getWeekPlan(Math.min(WEEK_PLANS.length - 1, Math.floor(dayIndex / 7)));
-    const isShort = modeId === 'short';
+    const minutes = SUNDAY_MINUTES[modeId] || SUNDAY_MINUTES.standard;
     return [
         {
             id: 'listen',
             label: '聽力回補',
             title: week.listening,
-            detail: '用上方聽力包做精聽，確認三題解析都看懂。',
-            minutes: isShort ? 8 : 12,
+            detail: '用上方聽力包做精聽，確認每題解析都看懂。',
+            minutes: minutes.listen,
             action: 'listening',
             actionLabel: getActionLabel('listening')
         },
@@ -422,7 +440,7 @@ function buildSundayTasks(dayIndex, week, modeId) {
             label: '週回顧',
             title: `整理第 ${Math.ceil(dayIndex / 7)} 週錯題`,
             detail: week.review,
-            minutes: isShort ? 12 : 20,
+            minutes: minutes.weeklyReview,
             action: 'history',
             actionLabel: getActionLabel('history')
         },
@@ -430,8 +448,8 @@ function buildSundayTasks(dayIndex, week, modeId) {
             id: 'reading',
             label: '閱讀回補',
             title: week.reading,
-            detail: '完成上方閱讀題組，把答案證據圈回原文。',
-            minutes: isShort ? 8 : 12,
+            detail: '完成上方閱讀題組，把每題答案證據圈回原文。',
+            minutes: minutes.reading,
             action: 'reading',
             actionLabel: getActionLabel('reading')
         },
@@ -440,12 +458,12 @@ function buildSundayTasks(dayIndex, week, modeId) {
             label: '下週預習',
             title: nextWeek.title,
             detail: `先看主題：${nextWeek.focus}`,
-            minutes: isShort ? 8 : 15,
+            minutes: minutes.preview,
             action: 'reading',
             topic: nextWeek.topics[0],
             actionLabel: getActionLabel('reading')
         }
-    ];
+    ].filter((task) => task.minutes > 0);
 }
 
 function buildDailyTasks(dayIndex, date = addDays(getStartDate(), dayIndex - 1), modeId = planState.commuteMode) {
@@ -523,6 +541,59 @@ function renderCommuteModes() {
     }).join('');
 }
 
+function getModeQuestionCounts(modeId = planState.commuteMode) {
+    return MODE_QUESTION_COUNTS[modeId] || MODE_QUESTION_COUNTS.standard;
+}
+
+function getModeQuestionTotals(modeId = planState.commuteMode) {
+    const config = getModeQuestionCounts(modeId);
+    const listening = config.listening + config.bonusListening;
+    const reading = config.reading + config.bonusReading;
+    return { listening, reading, total: listening + reading };
+}
+
+function markModeQuestion(question, lesson, bonus = false) {
+    return {
+        ...question,
+        id: bonus ? `bonus-${lesson.id}-${question.id}` : question.id,
+        isBonus: bonus,
+        bonusDay: bonus ? lesson.day : null,
+        sourcePart: lesson.part || question.part || ''
+    };
+}
+
+function getModeListeningQuestions(dayIndex, modeId = planState.commuteMode) {
+    const lesson = getListeningLessonForDay(dayIndex);
+    if (!lesson) return { lesson: null, questions: [] };
+    const config = getModeQuestionCounts(modeId);
+    const questions = lesson.questions
+        .slice(0, config.listening)
+        .map((question) => markModeQuestion(question, lesson, false));
+    if (config.bonusListening > 0) {
+        const bonusLesson = getListeningLessonForDay(Math.min(PLAN_DAYS, Number(dayIndex) + 1));
+        bonusLesson.questions
+            .slice(0, config.bonusListening)
+            .forEach((question) => questions.push(markModeQuestion(question, bonusLesson, true)));
+    }
+    return { lesson, questions };
+}
+
+function getModeReadingQuestions(dayIndex, modeId = planState.commuteMode) {
+    const lesson = getReadingLessonForDay(dayIndex);
+    if (!lesson) return { lesson: null, questions: [] };
+    const config = getModeQuestionCounts(modeId);
+    const questions = lesson.questions
+        .slice(0, config.reading)
+        .map((question) => markModeQuestion(question, lesson, false));
+    if (config.bonusReading > 0) {
+        const bonusLesson = getReadingLessonForDay(Math.min(PLAN_DAYS, Number(dayIndex) + 1));
+        bonusLesson.questions
+            .slice(0, config.bonusReading)
+            .forEach((question) => questions.push(markModeQuestion(question, bonusLesson, true)));
+    }
+    return { lesson, questions };
+}
+
 function renderTask(task, info) {
     const key = taskKey(info.dayIndex, task.id);
     const complete = isTaskComplete(key);
@@ -555,8 +626,7 @@ function getListeningAnswer(lessonId, questionId) {
     return planState.listeningAnswers[listeningAnswerKey(lessonId, questionId)] || '';
 }
 
-function getListeningStats(lesson) {
-    const questions = Array.isArray(lesson?.questions) ? lesson.questions : [];
+function getListeningStats(lesson, questions = Array.isArray(lesson?.questions) ? lesson.questions : []) {
     const answered = questions.filter((question) => getListeningAnswer(lesson.id, question.id)).length;
     const correct = questions.filter((question) => getListeningAnswer(lesson.id, question.id) === question.answerKey).length;
     return { answered, correct, total: questions.length };
@@ -595,10 +665,13 @@ function renderAnswerExplanation(question) {
 
 function renderListeningQuestion(lesson, question, index) {
     const selected = getListeningAnswer(lesson.id, question.id);
+    const questionLabel = question.isBonus
+        ? t('planBonusQuestion', { number: index + 1, day: question.bonusDay })
+        : t('planListeningQuestion', { number: index + 1 });
     return `
         <div class="plan-listening-question">
             <div class="plan-listening-question-title">
-                <span>${escapeHtml(t('planListeningQuestion', { number: index + 1 }))}</span>
+                <span>${escapeHtml(questionLabel)}</span>
                 <strong>${escapeHtml(question.question)}</strong>
             </div>
             <div class="plan-listening-options">
@@ -624,9 +697,9 @@ function renderListeningQuestion(lesson, question, index) {
 }
 
 function renderListeningDrill(info) {
-    const lesson = getListeningLessonForDay(info.dayIndex);
+    const { lesson, questions } = getModeListeningQuestions(info.dayIndex);
     if (!lesson) return '';
-    const stats = getListeningStats(lesson);
+    const stats = getListeningStats(lesson, questions);
     const listenKey = taskKey(info.dayIndex, 'listen');
     const completed = isTaskComplete(listenKey);
     const canComplete = stats.total > 0 && stats.answered === stats.total;
@@ -656,7 +729,7 @@ function renderListeningDrill(info) {
                 ${lesson.keywords.map((word) => `<span>${escapeHtml(word)}</span>`).join('')}
             </div>
             <div class="plan-listening-questions">
-                ${lesson.questions.map((question, index) => renderListeningQuestion(lesson, question, index)).join('')}
+                ${questions.map((question, index) => renderListeningQuestion(lesson, question, index)).join('')}
             </div>
             <details class="plan-listening-transcript">
                 <summary>${escapeHtml(t('planListeningTranscript'))}</summary>
@@ -664,7 +737,7 @@ function renderListeningDrill(info) {
                 <pre>${escapeHtml(lesson.translation)}</pre>
             </details>
             <div class="plan-listening-actions">
-                <p>${escapeHtml(canComplete ? t('planListeningReady') : t('planListeningNeedAnswers'))}</p>
+                <p>${escapeHtml(canComplete ? t('planListeningReady') : t('planListeningNeedAnswers', { count: stats.total }))}</p>
                 <button class="plan-task-action plan-listening-complete-btn" type="button" data-listening-complete="${info.dayIndex}" ${canComplete ? '' : 'disabled'}>
                     ${escapeHtml(completeLabel)}
                 </button>
@@ -681,8 +754,7 @@ function getReadingAnswer(lessonId, questionId) {
     return planState.readingAnswers[readingAnswerKey(lessonId, questionId)] || '';
 }
 
-function getReadingStats(lesson) {
-    const questions = Array.isArray(lesson?.questions) ? lesson.questions : [];
+function getReadingStats(lesson, questions = Array.isArray(lesson?.questions) ? lesson.questions : []) {
     const answered = questions.filter((question) => getReadingAnswer(lesson.id, question.id)).length;
     const correct = questions.filter((question) => getReadingAnswer(lesson.id, question.id) === question.answerKey).length;
     return { answered, correct, total: questions.length };
@@ -734,8 +806,7 @@ function getWeeklyMockStats(info) {
     };
 
     for (let day = weekStart; day <= weekEnd; day += 1) {
-        const listeningLesson = getListeningLessonForDay(day);
-        const listeningQuestions = Array.isArray(listeningLesson?.questions) ? listeningLesson.questions : [];
+        const { lesson: listeningLesson, questions: listeningQuestions } = getModeListeningQuestions(day);
         listeningQuestions.forEach((question) => {
             const answer = getListeningAnswer(listeningLesson.id, question.id);
             const answered = answer ? 1 : 0;
@@ -746,11 +817,11 @@ function getWeeklyMockStats(info) {
             summary.listeningTotal += 1;
             summary.listeningAnswered += answered;
             summary.listeningCorrect += correct;
-            addMetric(groupMap, `listening:${listeningLesson.part}`, listeningLesson.part, 'listening', answered, correct, 1);
+            const part = question.sourcePart || listeningLesson.part;
+            addMetric(groupMap, `listening:${part}`, part, 'listening', answered, correct, 1);
         });
 
-        const readingLesson = getReadingLessonForDay(day);
-        const readingQuestions = Array.isArray(readingLesson?.questions) ? readingLesson.questions : [];
+        const { lesson: readingLesson, questions: readingQuestions } = getModeReadingQuestions(day);
         readingQuestions.forEach((question) => {
             const answer = getReadingAnswer(readingLesson.id, question.id);
             const answered = answer ? 1 : 0;
@@ -796,10 +867,13 @@ function getWeeklyMockStats(info) {
 
 function renderReadingQuestion(lesson, question, index) {
     const selected = getReadingAnswer(lesson.id, question.id);
+    const partLabel = question.isBonus
+        ? `${t('planBonusQuestion', { number: index + 1, day: question.bonusDay })} ・ ${question.part}`
+        : `${question.part} ・ ${question.skill}`;
     return `
         <div class="plan-reading-question">
             <div class="plan-reading-question-title">
-                <span>${escapeHtml(question.part)} ・ ${escapeHtml(question.skill)}</span>
+                <span>${escapeHtml(partLabel)}</span>
                 <strong>${escapeHtml(t('planReadingQuestion', { number: index + 1 }))}</strong>
             </div>
             ${question.passage ? `<pre class="plan-reading-passage">${escapeHtml(question.passage)}</pre>` : ''}
@@ -827,9 +901,9 @@ function renderReadingQuestion(lesson, question, index) {
 }
 
 function renderReadingDrill(info) {
-    const lesson = getReadingLessonForDay(info.dayIndex);
+    const { lesson, questions } = getModeReadingQuestions(info.dayIndex);
     if (!lesson) return '';
-    const stats = getReadingStats(lesson);
+    const stats = getReadingStats(lesson, questions);
     const readingKey = taskKey(info.dayIndex, 'reading');
     const completed = isTaskComplete(readingKey);
     const canComplete = stats.total > 0 && stats.answered === stats.total;
@@ -848,10 +922,10 @@ function renderReadingDrill(info) {
                 </div>
             </div>
             <div class="plan-reading-questions">
-                ${lesson.questions.map((question, index) => renderReadingQuestion(lesson, question, index)).join('')}
+                ${questions.map((question, index) => renderReadingQuestion(lesson, question, index)).join('')}
             </div>
             <div class="plan-reading-actions">
-                <p>${escapeHtml(canComplete ? t('planReadingReady') : t('planReadingNeedAnswers'))}</p>
+                <p>${escapeHtml(canComplete ? t('planReadingReady') : t('planReadingNeedAnswers', { count: stats.total }))}</p>
                 <button class="plan-task-action plan-reading-complete-btn" type="button" data-reading-complete="${info.dayIndex}" ${canComplete ? '' : 'disabled'}>
                     ${escapeHtml(completeLabel)}
                 </button>
@@ -994,6 +1068,7 @@ function renderPlanSummary(info, stats, streak) {
 
 function renderToday(info, stats) {
     const totalMinutes = stats.todayTasks.reduce((sum, task) => sum + task.minutes, 0);
+    const questionTotals = getModeQuestionTotals();
     return `
         <section class="plan-section">
             <div class="plan-section-heading">
@@ -1013,7 +1088,14 @@ function renderToday(info, stats) {
             <div class="plan-mode-switch" role="group" aria-label="${escapeHtml(t('planCommuteMode'))}">
                 ${renderCommuteModes()}
             </div>
-            <div class="plan-total-time">${escapeHtml(t('planTodayMinutes', { minutes: totalMinutes }))}</div>
+            <div class="plan-total-time">
+                ${escapeHtml(t('planTodayMinutes', { minutes: totalMinutes }))}
+                <span>${escapeHtml(t('planModeQuestionSummary', {
+                    listening: questionTotals.listening,
+                    reading: questionTotals.reading,
+                    total: questionTotals.total
+                }))}</span>
+            </div>
             ${renderListeningDrill(info)}
             ${renderReadingDrill(info)}
             <div class="plan-task-list">
