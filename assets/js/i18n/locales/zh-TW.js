@@ -181,7 +181,7 @@ export default {
     "practiceModeSubtitle": "免 API 先用內建題庫；AI 文章、口說與模考可另外設定 Key",
     "offlinePracticeKicker": "免 API",
     "offlinePracticeTitle": "TOEIC 300 → 600 內建訓練",
-    "offlinePracticeDesc": "使用 84 天聽力音檔、閱讀題組、中文解析與弱點分析，不需要 Gemini API Key。",
+    "offlinePracticeDesc": "使用 84 天聽力音檔、閱讀題組、中文解析與弱點分析，不需要 Gemini API Key。內建題庫為自製 TOEIC-style 原創練習，非 ETS 官方題。",
     "offlinePracticeBtn": "開始免 API 訓練",
     "aiFeatureKeyNotice": "AI 即時生成功能需要 Gemini API Key；免 Key 請使用上方內建訓練。",
     "practiceModeArticle": "AI 文章練習",

@@ -15,7 +15,7 @@ const TOPICS = [
     { company: 'Grand City Hotel', item: 'survey results', place: 'front desk', role: 'hotel manager', action: 'add evening staff', reason: 'slow check-in service', zh: '旅館服務' },
     { company: 'Online Order Pro', item: 'ordering system', place: 'company website', role: 'IT support team', action: 'complete maintenance', reason: 'a security update', zh: '系統維護' },
     { company: 'Vista Sales Group', item: 'presentation slides', place: 'small conference room', role: 'sales manager', action: 'update the calendar invitation', reason: 'a schedule change', zh: '客戶簡報' },
-    { company: 'Global Test Center', item: 'admission ticket', place: 'testing room', role: 'test coordinator', action: 'check identification', reason: 'tomorrow s certification test', zh: '考試文件' },
+    { company: 'Global Test Center', item: 'admission ticket', place: 'testing room', role: 'test coordinator', action: 'check identification', reason: 'tomorrow\'s certification test', zh: '考試文件' },
     { company: 'Riverside Cafe', item: 'lunch vouchers', place: 'cafeteria', role: 'HR assistant', action: 'hand out vouchers', reason: 'new employee orientation', zh: '員工餐廳' },
     { company: 'Peak Product Lab', item: 'sample unit', place: 'showroom', role: 'marketing specialist', action: 'prepare the display', reason: 'a product demonstration', zh: '產品展示' },
     { company: 'City Repair Desk', item: 'office copier', place: 'copy room', role: 'maintenance technician', action: 'inspect the machine', reason: 'paper jams', zh: '設備維修' },
@@ -33,42 +33,42 @@ const TOPICS = [
 const PART5_TEMPLATES = [
     {
         skill: 'Verb Form',
-        sentence: ({ role, action }) => `The ${role} will ___ before leaving the office.`,
+        sentence: ({ role, action }) => `The ${role} will ___ before the end of the day.`,
         answer: ({ action }) => action,
         wrong: ['to review the request', 'reviewed the request', 'reviewing the request'],
         explanation: 'After "will", use the base verb form.'
     },
     {
         skill: 'Preposition',
-        sentence: ({ place }) => `The updated file is available ___ the ${place}.`,
-        answer: () => 'in',
+        sentence: () => 'The updated file is available ___ the shared drive.',
+        answer: () => 'on',
         wrong: ['between', 'during', 'until'],
-        explanation: 'Use "in" for a location such as a room, folder, or place.'
+        explanation: 'Use "on" for an online shared drive.'
     },
     {
         skill: 'Adverb',
-        sentence: ({ role }) => `The ${role} responded ___ to the client s request.`,
+        sentence: ({ role }) => `The ${role} responded ___ to the client's request.`,
         answer: () => 'promptly',
         wrong: ['prompt', 'promptness', 'prompts'],
         explanation: 'An adverb is needed to describe the verb "responded".'
     },
     {
         skill: 'Noun',
-        sentence: ({ item }) => `Please send a copy of the ___ to the manager by noon.`,
-        answer: ({ item }) => item,
+        sentence: () => 'Please send a copy of the ___ to the manager by noon.',
+        answer: () => 'invoice',
         wrong: ['carefully', 'approve', 'recently'],
         explanation: 'A noun phrase is needed after "the".'
     },
     {
         skill: 'Conjunction',
-        sentence: ({ reason }) => `The meeting was moved ___ the team needed more time for ${reason}.`,
+        sentence: () => 'The meeting was moved ___ several team members were unavailable.',
         answer: () => 'because',
         wrong: ['although', 'unless', 'despite'],
         explanation: '"Because" introduces the reason for the change.'
     },
     {
         skill: 'Passive Voice',
-        sentence: ({ item }) => `The ${item} must be ___ before the end of the day.`,
+        sentence: () => 'The report must be ___ before the end of the day.',
         answer: () => 'reviewed',
         wrong: ['review', 'reviewing', 'reviews'],
         explanation: 'Use the past participle after "must be" for passive voice.'
@@ -132,7 +132,7 @@ function withChineseExplanation(question, zhExplanation, clue, wrongReason) {
 function getPart5RuleZh(skill, answer) {
     const rules = {
         'Verb Form': `題目考助動詞後的動詞型態。will 後面要接原形動詞，因此空格要用「${answer}」。`,
-        Preposition: `題目考介系詞。空格後面是地點或資料位置，表示「在某處」要用「${answer}」。`,
+        Preposition: `題目考介系詞。shared drive 是線上儲存位置，英文通常說 available on the shared drive，所以要用「${answer}」。`,
         Adverb: `題目考副詞。空格修飾動詞 responded，需要用副詞「${answer}」。`,
         Noun: `題目考名詞。the 後面需要名詞或名詞片語，因此要選「${answer}」。`,
         Conjunction: `題目考連接詞。前後句是原因關係，需要用「${answer}」引導原因。`,
@@ -170,7 +170,7 @@ function buildPart5(day, topic) {
 
 function buildPart6(day, topic) {
     const answerKey = 'B';
-    const passage = `To: All Staff\nSubject: ${topic.item}\n\nPlease remember that the ${topic.item} needs attention because of ${topic.reason}. The ${topic.role} will review the details this afternoon and handle the next step. If you have questions, please contact the team in the ${topic.place}. The next step is to ___ after the review.`;
+    const passage = `To: All Staff\nSubject: ${topic.item}\n\nPlease remember that the ${topic.item} needs attention because of ${topic.reason}. The ${topic.role} will review the details this afternoon and handle the next step. If you have questions, please contact the responsible team. The next step is to ___ after the review.`;
     return withChineseExplanation({
         id: 'q2',
         part: 'Part 6',
@@ -185,17 +185,17 @@ function buildPart6(day, topic) {
 
 function buildPart7(day, topic) {
     const answerKey = 'C';
-    const passage = `${topic.company} Notice\n\nThe ${topic.role} has asked employees to check the ${topic.item} in the ${topic.place}. This is necessary because of ${topic.reason}. Employees who need help should contact the department before noon. A short update will be sent after the team finishes the review.`;
+    const passage = `${topic.company} Notice\n\nThe ${topic.role} has asked employees to review the latest update about the ${topic.item}. This is necessary because of ${topic.reason}. Employees who need help should contact the department before noon. A short update will be sent after the team finishes the review.`;
     return withChineseExplanation({
         id: 'q3',
         part: 'Part 7',
         skill: 'Reading Evidence',
         passage,
-        question: 'Why are employees asked to check the item?',
+        question: 'Why are employees asked to review the update?',
         options: makeOptions(topic.reason, WRONG_REASONS, answerKey, day),
         answerKey,
-        explanation: `The notice says the check is necessary because of ${topic.reason}.`
-    }, `題目問員工為什麼被要求檢查。原文定位句是「This is necessary because of ${topic.reason}」，所以原因是 ${topic.reason}。`, `because of ${topic.reason}`, '錯誤選項不是公告中列出的原因');
+        explanation: `The notice says the update is necessary because of ${topic.reason}.`
+    }, `題目問員工為什麼被要求查看更新。原文定位句是「This is necessary because of ${topic.reason}」，所以原因是 ${topic.reason}。`, `because of ${topic.reason}`, '錯誤選項不是公告中列出的原因');
 }
 
 function buildLesson(day) {
