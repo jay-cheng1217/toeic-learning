@@ -963,6 +963,46 @@ body {
     font-style: normal;
     font-weight: 800;
 }
+.offline-practice-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    margin: 10px 0 16px;
+    padding: 14px;
+    background: #f4fbf6;
+    border: 1px solid #cae9d1;
+    border-left: 6px solid var(--success);
+    border-radius: 14px;
+}
+.offline-practice-card span {
+    color: #166534;
+    font-size: 11px;
+    font-weight: 900;
+}
+.offline-practice-card h3 {
+    margin: 3px 0 5px;
+    color: var(--text-main);
+    font-size: 16px;
+    line-height: 1.25;
+}
+.offline-practice-card p {
+    margin: 0;
+    color: #3f5365;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.practice-ai-note {
+    margin: 0 0 12px;
+    padding: 9px 10px;
+    color: #6b5300;
+    background: #fff8db;
+    border: 1px solid #f3df8d;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+}
 .plan-milestone-list,
 .plan-week-grid {
     display: grid;
@@ -2083,6 +2123,13 @@ button.voice-chip {
     }
     .plan-analytics-breakdown {
         grid-template-columns: 1fr;
+    }
+    .offline-practice-card {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+    .offline-practice-card .plan-task-action {
+        width: 100%;
     }
     .practice-mode-btn {
         font-size: 17px;

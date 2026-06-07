@@ -565,6 +565,10 @@ document.getElementById('btnClearHistory').onclick = () => clearHistory();
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.onclick = () => switchTab(btn.dataset.tab);
 });
+const btnOpenOfflinePlan = document.getElementById('btnOpenOfflinePlan');
+if (btnOpenOfflinePlan) {
+    btnOpenOfflinePlan.onclick = () => switchTab('plan');
+}
 document.querySelectorAll('#vocabSubtabSwitch .vocab-subtab-btn').forEach((btn) => {
     btn.onclick = () => setVocabSubtab(btn.dataset.vocabSubtab);
 });
@@ -670,6 +674,7 @@ document.querySelectorAll('#speakingPresetGroup .topic-chip').forEach(chip => {
 
 document.getElementById('btnStartSpeaking').onclick = async () => {
     try {
+        if (!state.apiKey) return alert(t('alertSetApiKeyFirst'));
         const custom = document.getElementById('speakingCustomTopic').value.trim();
         state.speakingState.customTopic = custom;
         const topic = custom || state.speakingState.selectedTopic;
