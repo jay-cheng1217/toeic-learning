@@ -117,12 +117,41 @@
           document.head.appendChild(entry);
         }
 
+        function purgeStaticCachesForNewVersion(version) {
+          if (!version || !("caches" in window)) return Promise.resolve();
+          var storageKey = "toeic_boot_asset_version";
+          var previousVersion = "";
+          try {
+            previousVersion = localStorage.getItem(storageKey) || "";
+          } catch (err) {
+            previousVersion = "";
+          }
+          if (previousVersion === version) return Promise.resolve();
+          return caches.keys()
+            .then(function (keys) {
+              return Promise.all(keys
+                .filter(function (key) { return key.indexOf("toeic-tutor-static") === 0; })
+                .map(function (key) { return caches.delete(key); }));
+            })
+            .catch(function () {})
+            .then(function () {
+              try {
+                localStorage.setItem(storageKey, version);
+              } catch (err) {}
+            });
+        }
+
+        function prepareAndMountAssets(data) {
+          var version = data && data.version ? data.version : "";
+          window.__TOEIC_VERSION_INFO__ = data || null;
+          purgeStaticCachesForNewVersion(version).then(function () {
+            mountAssets(version);
+          });
+        }
+
         fetch("./version.json?t=" + Date.now())
           .then(function (res) { return res.ok ? res.json() : null; })
-          .then(function (data) {
-            window.__TOEIC_VERSION_INFO__ = data || null;
-            mountAssets(data && data.version ? data.version : "");
-          })
+          .then(prepareAndMountAssets)
           .catch(function () {
             window.__TOEIC_VERSION_INFO__ = null;
             mountAssets("");
